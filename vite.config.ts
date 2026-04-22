@@ -22,6 +22,13 @@ export default defineConfig({
         }),
         ui({
             router: 'inertia',
+            ui: {
+                colors: {
+                    primary: 'sage',
+                    secondary: 'gold',
+                    neutral: 'slate'
+                }
+            }
         }),
         wayfinder({
             formVariants: true,
