@@ -2,8 +2,9 @@ FROM node:20-alpine AS node-build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --prefer-offline
+COPY vite.config.ts tsconfig.json ./
 COPY resources/ ./resources/
-RUN npm run build || echo "No build script"
+RUN npm run build
 
 FROM composer:2 AS composer-deps
 WORKDIR /app
@@ -30,6 +31,7 @@ COPY --from=composer-deps /app/composer.json ./composer.json
 
 # Copy built assets from node-build
 COPY --from=node-build /app/resources/ ./resources/
+COPY --from=node-build /app/public/build ./public/build
 COPY --from=node-build /app/node_modules ./node_modules
 
 # Copy the rest of the application source
