@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\CommissionNoteController;
 use App\Http\Controllers\CompanySwitchController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -27,4 +28,15 @@ Route::post('/company/switch', [CompanySwitchController::class, 'store'])
 Route::middleware(['auth', 'role:manager'])->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/companies/{company}/branches/{branch}/notes',
+        [CommissionNoteController::class, 'index'])->name('notes.index');
+    Route::post('/companies/{company}/branches/{branch}/notes',
+        [CommissionNoteController::class, 'store'])->name('notes.store');
+    Route::patch('/notes/{note}',
+        [CommissionNoteController::class, 'update'])->name('notes.update');
+    Route::delete('/notes/{note}',
+        [CommissionNoteController::class, 'destroy'])->name('notes.destroy');
 });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Branch;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -36,6 +37,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $selectedCompanyId = session('selected_company_id');
 
         return [
             ...parent::share($request),
@@ -43,7 +45,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
                 'companies' => $user ? $user->companies()->get(['id', 'name']) : [],
-                'selectedCompanyId' => session('selected_company_id'),
+                'selectedCompanyId' => $selectedCompanyId,
+                'branches' => $user && $selectedCompanyId
+                    ? Branch::where('company_id', $selectedCompanyId)->get(['id', 'name'])
+                    : [],
                 'roles' => $user ? $user->getRoleNames() : [],
             ],
         ];
