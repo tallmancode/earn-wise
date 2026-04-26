@@ -1,27 +1,24 @@
-<script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import AppLogo from '@/components/AppLogo.vue';
-</script>
+<script setup lang="ts"></script>
 
 <template>
     <div class="flex min-h-screen flex-col bg-(--ui-bg)">
-        <header class="border-b border-(--ui-border) bg-(--ui-bg)">
-            <UContainer>
-                <div class="flex h-16 items-center justify-between">
-                    <Link href="/" class="flex items-center">
-                        <AppLogo class="h-8 w-auto" />
-                    </Link>
-                    <nav class="flex items-center gap-2">
-                        <UButton as-child color="neutral" variant="ghost">
-                            <Link href="/">Home</Link>
-                        </UButton>
-                        <UButton as-child color="primary" variant="solid">
-                            <Link href="/login">Login</Link>
-                        </UButton>
-                    </nav>
-                </div>
-            </UContainer>
-        </header>
+        <!--        <header class="border-b border-(&#45;&#45;ui-border) bg-(&#45;&#45;ui-bg)">-->
+        <!--            <UContainer>-->
+        <!--                <div class="flex h-16 items-center justify-between">-->
+        <!--                    <Link href="/" class="flex items-center">-->
+        <!--                        <AppLogo class="h-8 w-auto" />-->
+        <!--                    </Link>-->
+        <!--                    <nav class="flex items-center gap-2">-->
+        <!--                        <UButton as-child color="neutral" variant="ghost">-->
+        <!--                            <Link href="/">Home</Link>-->
+        <!--                        </UButton>-->
+        <!--                        <UButton as-child color="primary" variant="solid">-->
+        <!--                            <Link href="/login">Login</Link>-->
+        <!--                        </UButton>-->
+        <!--                    </nav>-->
+        <!--                </div>-->
+        <!--            </UContainer>-->
+        <!--        </header>-->
 
         <main class="flex flex-1 flex-col">
             <slot />
