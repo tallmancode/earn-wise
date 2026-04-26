@@ -82,7 +82,7 @@ const panelUi = shallowRef({});
                 <USeparator :ui="{ border: 'border-white-100/80' }" />
                 <UNavigationMenu
                     :ui="{
-                        link: 'before:bg-transparent data-[active]:text-primary-500 text-white-50',
+                        link: 'data-[active]:text-primary-500 text-white-50',
                         linkLeadingIcon:
                             'group-data-[active]:text-primary-500 text-white-50',
                     }"
