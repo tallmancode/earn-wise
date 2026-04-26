@@ -42,10 +42,10 @@ const stats = [
 
     <div class="flex flex-col gap-6">
         <div>
-            <h1 class="text-2xl font-bold text-(--ui-text-highlighted)">
+            <h1 class="text-2xl font-bold text-highlighted">
                 Welcome back{{ user?.name ? `, ${user.name}` : '' }}
             </h1>
-            <p class="mt-1 text-sm text-(--ui-text-muted)">
+            <p class="mt-1 text-sm text-muted">
                 Here's an overview of your finances.
             </p>
         </div>
@@ -54,7 +54,7 @@ const stats = [
             <UCard v-for="stat in stats" :key="stat.label">
                 <div class="flex items-start justify-between">
                     <div>
-                        <p class="text-sm text-(--ui-text-muted)">
+                        <p class="text-sm text-muted">
                             {{ stat.label }}
                         </p>
                         <p

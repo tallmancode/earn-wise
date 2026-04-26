@@ -1,3 +1,8 @@
+export type Company = {
+    id: number;
+    name: string;
+};
+
 export type Employee = {
     id: number;
     name: string;
@@ -20,4 +25,6 @@ export type User = {
 
 export type Auth = {
     user: User;
+    companies: Company[];
+    selectedCompanyId: number | null;
 };
