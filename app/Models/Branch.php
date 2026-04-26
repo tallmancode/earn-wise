@@ -22,4 +22,9 @@ class Branch extends Model
     {
         return $this->hasMany(Employee::class);
     }
+
+    public function commissionNotes(): HasMany
+    {
+        return $this->hasMany(CommissionNote::class);
+    }
 }

@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref, shallowRef } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import CompanySwitcher from '@/components/CompanySwitcher.vue';
+import NotificationBell from '@/components/NotificationBell.vue';
 import type { Auth, Branch, User } from '@/types/auth';
 
 const page = usePage();
@@ -183,6 +184,7 @@ const panelUi = shallowRef({});
                                 </div>
                             </template>
                             <template #right>
+                                <NotificationBell />
                                 <UColorModeButton
                                     :ui="{ leadingIcon: 'text-white-50' }"
                                     variant="link"

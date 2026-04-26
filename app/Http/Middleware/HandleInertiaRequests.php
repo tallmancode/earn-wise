@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
                     ? Branch::where('company_id', $selectedCompanyId)->get(['id', 'name'])
                     : [],
                 'roles' => $user ? $user->getRoleNames() : [],
+                'unreadNotificationsCount' => $user ? $user->unreadNotifications()->count() : 0,
             ],
         ];
     }

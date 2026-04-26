@@ -45,12 +45,14 @@ Tests run against an in-memory SQLite database (configured in `phpunit.xml`), in
 
 ## What I would harden for production
 
-| Area | Action |
-|---|---|
-| **Queued notifications** | Commission note creation/update would dispatch a `CommissionNoteCreated` event. A listener would push a `SendCommissionNotification` job onto a Redis-backed queue (`php artisan queue:work`). The job would send an email (via Laravel's `Mail` facade) or an SMS (via a gateway like BulkSMS) to the employee. This keeps the HTTP request fast and decouples delivery from the web process. |
-| **Backups** | Schedule `spatie/laravel-backup` to snapshot the MariaDB volume nightly to an off-site S3 bucket. |
-| **Rate limiting** | Apply stricter per-user throttle on the `notes.store` and `notes.update` routes. |
-| **Audit trail** | Add an `activity_log` table (or use `spatie/laravel-activitylog`) to record who created or changed each note and when. |
-| **HTTPS** | Terminate TLS at a reverse proxy (e.g. Caddy or an AWS ALB) in front of the nginx container; set `SESSION_SECURE_COOKIE=true`. |
-| **Permissions cache** | Warm the Spatie permission cache on deployment (`php artisan permission:cache-reset`) and set a reasonable TTL to avoid per-request DB hits. |
-| **Environment secrets** | Move `APP_KEY`, DB credentials, and mail credentials out of `docker-compose.yml` into a secrets manager (e.g. AWS Secrets Manager or Doppler). |
+| Area | Action | Status |
+|---|---|---|
+| **Queued notifications** | Commission note creation dispatches a `CommissionNoteCreated` event. A queued listener (`NotifyEmployeeAboutCommission`, implements `ShouldQueue`, 3 retries) sends a `CommissionNoteAssigned` database notification to the employee's linked user account. Works out of the box with the `database` queue driver already used in this project; swapping to Redis is a one-line config change. A `NotificationBell` component in the navbar polls `/notifications` every 60 s and supports mark-all-read. | **Implemented** |
+| **Audit trail** | Every create, update, and delete on a `CommissionNote` is recorded to `commission_note_audits` (`event`, `old_values`, `new_values`, `ip_address`, `user_id`). Audit records are stored without a FK cascade so they survive note deletion. The Commission Notes page shows a collapsible per-note history modal with a change diff (e.g. "amount: R 10 000 → R 12 000"). | **Implemented** |
+| **Rate limiting** | A named `commission-writes` limiter (30 requests/minute per user) is applied to `notes.store`, `notes.update`, and `notes.destroy` via `throttle:commission-writes`. Defined in `AppServiceProvider` using `RateLimiter::for`. | **Implemented** |
+| **Data export** | Managers and viewers can export all commission notes for a branch to CSV (`GET /companies/{company}/branches/{branch}/notes/export`). Supports optional `?month=YYYY-MM` filter. Uses a `StreamedResponse` with chunked queries so large datasets do not exhaust memory. | **Implemented** |
+| **Live analytics dashboard** | Dashboard now shows real aggregated data for the selected company: total commissions this month, all-time total, branch breakdown (this month vs all-time), top earners leaderboard, and a recent activity feed. | **Implemented** |
+| **Backups** | Schedule `spatie/laravel-backup` to snapshot the MariaDB volume nightly to an off-site S3 bucket. | Design note |
+| **HTTPS** | Terminate TLS at a reverse proxy (e.g. Caddy or an AWS ALB) in front of the nginx container; set `SESSION_SECURE_COOKIE=true`. | Design note |
+| **Permissions cache** | Warm the Spatie permission cache on deployment (`php artisan permission:cache-reset`) and set a reasonable TTL to avoid per-request DB hits. | Design note |
+| **Environment secrets** | Move `APP_KEY`, DB credentials, and mail credentials out of `docker-compose.yml` into a secrets manager (e.g. AWS Secrets Manager or Doppler). | Design note |
