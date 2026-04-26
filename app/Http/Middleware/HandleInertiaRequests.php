@@ -44,6 +44,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
                 'companies' => $user ? $user->companies()->get(['id', 'name']) : [],
                 'selectedCompanyId' => session('selected_company_id'),
+                'roles' => $user ? $user->getRoleNames() : [],
             ],
         ];
     }

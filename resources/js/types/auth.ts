@@ -3,6 +3,12 @@ export type Company = {
     name: string;
 };
 
+export type Branch = {
+    id: number;
+    name: string;
+    company_id: number;
+};
+
 export type Employee = {
     id: number;
     name: string;
@@ -27,4 +33,5 @@ export type Auth = {
     user: User;
     companies: Company[];
     selectedCompanyId: number | null;
+    roles: string[];
 };
