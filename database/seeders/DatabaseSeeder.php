@@ -80,8 +80,6 @@ class DatabaseSeeder extends Seeder
             'description' => 'Commission payment - Bob',
             'payment_date' => now()->toDateString(),
         ]);
-        // User::factory(10)->create();
-
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',

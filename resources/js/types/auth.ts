@@ -42,7 +42,7 @@ export type CommissionNoteAudit = {
     id: number;
     commission_note_id: number | null;
     user_id: number;
-    event: 'created' | 'updated' | 'deleted';
+    event: 'created' | 'updated' | 'deleted' | 'restored';
     old_values: Record<string, unknown> | null;
     new_values: Record<string, unknown> | null;
     ip_address: string | null;
