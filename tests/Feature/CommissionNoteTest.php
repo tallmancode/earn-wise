@@ -138,5 +138,58 @@ it('allows the original author to delete their own note', function () {
     $this->actingAs($author)->delete(route('notes.destroy', $note))
         ->assertRedirect();
 
-    $this->assertDatabaseMissing('commission_notes', ['id' => $note->id]);
+    $this->assertSoftDeleted('commission_notes', ['id' => $note->id]);
+});
+
+it('does not return notes from other branches', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('view commission notes');
+
+    $company = Company::factory()->create();
+    $branchA = Branch::factory()->for($company)->create();
+    $branchB = Branch::factory()->for($company)->create();
+    $employee = Employee::factory()->for($company)->for($branchA)->create();
+
+    $note = CommissionNote::factory()->create([
+        'company_id' => $company->id,
+        'branch_id' => $branchA->id,
+        'employee_id' => $employee->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('notes.index', [$company, $branchB]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('CommissionNotes/Index')
+            ->where('notes.data', fn ($notes) => collect($notes)->pluck('id')->doesntContain($note->id)
+            )
+        );
+});
+
+it('rejects negative commission amounts', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(['view commission notes', 'manage commission notes']);
+
+    $company = Company::factory()->create();
+    $branch = Branch::factory()->for($company)->create();
+    $employee = Employee::factory()->for($company)->for($branch)->create();
+
+    $this->actingAs($user)->post(route('notes.store', [$company, $branch]), [
+        'employee_id' => $employee->id,
+        'amount' => -100,
+        'payment_date' => now()->toDateString(),
+    ])->assertSessionHasErrors('amount');
+});
+
+it('returns 404 when patching a soft-deleted note', function () {
+    $author = User::factory()->create();
+    $author->givePermissionTo(['view commission notes', 'manage commission notes']);
+
+    $note = CommissionNote::factory()->create(['created_by' => $author->id]);
+    $note->delete();
+
+    $this->actingAs($author)->patch(route('notes.update', $note->id), [
+        'amount' => 500,
+        'payment_date' => now()->toDateString(),
+    ])->assertNotFound();
 });

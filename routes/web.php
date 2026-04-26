@@ -52,6 +52,12 @@ Route::middleware(['auth'])->group(function () {
         ->name('notes.destroy')
         ->middleware('throttle:commission-writes');
 
+    Route::patch('/notes/{note}/restore',
+        [CommissionNoteController::class, 'restore'])
+        ->name('notes.restore')
+        ->withTrashed()
+        ->middleware('throttle:commission-writes');
+
     Route::get('/companies/{company}/branches/{branch}/notes/export',
         CommissionNoteExportController::class)->name('notes.export');
 

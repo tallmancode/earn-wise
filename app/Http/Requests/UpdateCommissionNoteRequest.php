@@ -2,14 +2,17 @@
 
 namespace App\Http\Requests;
 
+use App\Models\CommissionNote;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateCommissionNoteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('manage commission notes')
-            || $this->route('note')->created_by === $this->user()->id;
+        /** @var CommissionNote $note */
+        $note = $this->route('note');
+
+        return $this->user()->can('update', $note);
     }
 
     public function rules(): array
