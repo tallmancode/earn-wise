@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { useDebounceFn } from '@vueuse/core';
 import { computed, h, ref, resolveComponent, watch } from 'vue';
 import {
     destroy as destroyAction,
+    index as indexAction,
     store as storeAction,
     update as updateAction,
 } from '@/actions/App/Http/Controllers/CommissionNoteController';
@@ -14,6 +16,7 @@ import type {
     CommissionNoteAudit,
     Company,
     Employee,
+    Paginated,
 } from '@/types/auth';
 
 defineOptions({ layout: AppLayout });
@@ -21,9 +24,10 @@ defineOptions({ layout: AppLayout });
 const props = defineProps<{
     company: Company;
     branch: Branch;
-    notes: CommissionNote[];
+    notes: Paginated<CommissionNote>;
     employees: Employee[];
     canManage: boolean;
+    filters: { search: string };
 }>();
 
 const page = usePage();
@@ -33,18 +37,17 @@ const currentUserId = computed(
     () => (page.props.auth as any)?.user?.id as number,
 );
 
-const filteredNotes = computed(() =>
-    noteStore.filterEmployeeId
-        ? props.notes.filter(
-              (n) => n.employee_id === noteStore.filterEmployeeId,
-          )
-        : props.notes,
-);
+const search = ref(props.filters.search ?? '');
 
-const employeeItems = computed(() => [
-    { label: 'All Employees', value: null },
-    ...props.employees.map((e) => ({ label: e.name, value: e.id })),
-]);
+const performSearch = useDebounceFn((value: string) => {
+    router.get(
+        indexAction.url({ company: props.company.id, branch: props.branch.id }),
+        { search: value || undefined },
+        { preserveState: true, replace: true },
+    );
+}, 400);
+
+watch(search, (value) => performSearch(value));
 
 // ── Export URL ────────────────────────────────────────────────────────────────
 
@@ -280,21 +283,34 @@ const columns = [
             </div>
         </div>
 
-        <!-- Employee filter -->
+        <!-- Search -->
         <div class="flex items-center gap-3">
-            <USelect
-                :items="employeeItems"
-                :model-value="noteStore.filterEmployeeId"
-                placeholder="Filter by employee"
-                class="w-56"
-                @update:model-value="noteStore.setFilter($event)"
-            />
+            <UInput
+                v-model="search"
+                placeholder="Search by employee name…"
+                icon="i-lucide-search"
+                class="w-72"
+                :ui="{ trailing: 'pr-1' }"
+            >
+                <template v-if="search" #trailing>
+                    <UButton
+                        color="neutral"
+                        variant="link"
+                        size="sm"
+                        icon="i-lucide-x"
+                        @click="search = ''"
+                    />
+                </template>
+            </UInput>
+            <span class="text-sm text-muted">
+                {{ notes.total }} note{{ notes.total !== 1 ? 's' : '' }}
+            </span>
         </div>
 
         <!-- Notes table -->
         <UCard>
             <UTable
-                :data="filteredNotes"
+                :data="notes.data"
                 :columns="columns"
                 empty="No commission notes found."
             >
@@ -335,6 +351,29 @@ const columns = [
                     </div>
                 </template>
             </UTable>
+
+            <!-- Pagination -->
+            <div
+                v-if="notes.last_page > 1"
+                class="mt-4 flex justify-center border-t pt-4"
+            >
+                <UPagination
+                    :page="notes.current_page"
+                    :total="notes.total"
+                    :items-per-page="notes.per_page"
+                    @update:page="
+                        (p: number) =>
+                            router.get(
+                                indexAction.url({
+                                    company: company.id,
+                                    branch: branch.id,
+                                }),
+                                { page: p, search: search || undefined },
+                                { preserveState: true },
+                            )
+                    "
+                />
+            </div>
         </UCard>
     </div>
 

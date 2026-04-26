@@ -3,14 +3,16 @@
 namespace App\Http\Requests;
 
 use App\Models\Branch;
+use App\Models\CommissionNote;
 use App\Models\Company;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCommissionNoteRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('manage commission notes');
+        return $this->user()->can('create', CommissionNote::class);
     }
 
     /**
@@ -33,7 +35,13 @@ class StoreCommissionNoteRequest extends FormRequest
         return [
             'company_id' => ['required', 'integer', 'exists:companies,id'],
             'branch_id' => ['required', 'integer', 'exists:branches,id'],
-            'employee_id' => ['required', 'integer', 'exists:employees,id'],
+            'employee_id' => [
+                'required',
+                'integer',
+                Rule::exists('employees', 'id')->where(fn ($q) => $q->where('branch_id', $this->branch_id)
+                    ->where('company_id', $this->company_id)
+                ),
+            ],
             'amount' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:1000'],
             'payment_date' => ['required', 'date'],

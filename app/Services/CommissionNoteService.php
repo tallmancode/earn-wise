@@ -5,20 +5,21 @@ namespace App\Services;
 use App\Events\CommissionNoteCreated;
 use App\Models\CommissionNote;
 use App\Models\CommissionNoteAudit;
-use App\Models\User;
-use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 
 class CommissionNoteService
 {
-    public function list(int $companyId, int $branchId): Collection
+    public function list(int $companyId, int $branchId, ?string $search = null): LengthAwarePaginator
     {
         return CommissionNote::with(['employee', 'author', 'audits.actor'])
             ->where('company_id', $companyId)
             ->where('branch_id', $branchId)
+            ->when($search, fn ($q) => $q->whereHas('employee',
+                fn ($q) => $q->where('name', 'like', "%{$search}%")
+            ))
             ->latest()
-            ->get();
+            ->paginate(15);
     }
 
     public function create(array $validated): CommissionNote
@@ -42,13 +43,6 @@ class CommissionNoteService
 
     public function update(CommissionNote $note, array $validated): CommissionNote
     {
-        /** @var User $user */
-        $user = Auth::user();
-
-        if ($note->created_by !== $user->id && ! $user->can('manage commission notes')) {
-            throw new AuthorizationException('You are not authorised to edit this note.');
-        }
-
         $oldValues = $this->auditableValues($note);
 
         $note->update([
@@ -66,16 +60,18 @@ class CommissionNoteService
 
     public function delete(CommissionNote $note): void
     {
-        /** @var User $user */
-        $user = Auth::user();
-
-        if ($note->created_by !== $user->id && ! $user->can('manage commission notes')) {
-            throw new AuthorizationException('You are not authorised to delete this note.');
-        }
-
         $this->recordAudit('deleted', $note->id, $this->auditableValues($note), null);
 
         $note->delete();
+    }
+
+    public function restore(CommissionNote $note): CommissionNote
+    {
+        $note->restore();
+
+        $this->recordAudit('created', $note->id, null, $this->auditableValues($note));
+
+        return $note;
     }
 
     /** @return array<string, mixed> */

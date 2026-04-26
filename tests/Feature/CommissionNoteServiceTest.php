@@ -3,7 +3,6 @@
 use App\Models\CommissionNote;
 use App\Models\User;
 use App\Services\CommissionNoteService;
-use Illuminate\Auth\Access\AuthorizationException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -29,23 +28,6 @@ it('allows the original author to edit their own note', function () {
     ]);
 
     expect($updated->amount)->toBe('15000.00');
-});
-
-it('prevents a non-author without manage permission from editing', function () {
-    $author = User::factory()->create();
-    $otherUser = User::factory()->create();
-    $otherUser->givePermissionTo('view commission notes');
-
-    $note = CommissionNote::factory()->create(['created_by' => $author->id]);
-
-    $this->actingAs($otherUser);
-
-    $service = new CommissionNoteService;
-
-    expect(fn () => $service->update($note, [
-        'amount' => 99999,
-        'payment_date' => now()->toDateString(),
-    ]))->toThrow(AuthorizationException::class);
 });
 
 it('allows a manager to edit someone elses note', function () {

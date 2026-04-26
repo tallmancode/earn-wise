@@ -94,7 +94,7 @@ it('records a deleted audit entry when a note is deleted', function () {
     $service = new CommissionNoteService;
     $service->delete($note);
 
-    $this->assertDatabaseMissing('commission_notes', ['id' => $noteId]);
+    $this->assertSoftDeleted('commission_notes', ['id' => $noteId]);
 
     $audit = CommissionNoteAudit::where('commission_note_id', $noteId)
         ->where('event', 'deleted')
