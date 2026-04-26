@@ -4,6 +4,16 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+:root {
+    --ui-header-height: 3rem;
+    --shadow-color: 0deg 0% 63%;
+    --shadow-elevation-medium:
+        0.3px 0.5px 0.7px hsl(var(--shadow-color) / 0.36),
+        0.8px 1.6px 2px -0.8px hsl(var(--shadow-color) / 0.36),
+        2.1px 4.1px 5.2px -1.7px hsl(var(--shadow-color) / 0.36),
+        5px 10px 12.6px -2.5px hsl(var(--shadow-color) / 0.36);
+}
+
 @theme static {
     --font-sans:
         Instrument Sans, ui-sans-serif, system-ui, sans-serif,
@@ -45,4 +55,38 @@
     --color-slate-800: oklch(0.283 0.015 256.79);
     --color-slate-900: oklch(0.207 0.01 248.31);
     --color-slate-950: oklch(0.163 0.009 264.29);
+}
+
+@utility shadow-smooth {
+    box-shadow: var(--shadow-elevation-medium);
+}
+
+@utility fancy-bg {
+    background-image:
+        radial-gradient(
+            circle at 17% 77%,
+            oklch(from var(--color-gold-950) l c h / 0.04) 0%,
+            oklch(from var(--color-gold-950) l c h / 0.04) 50%,
+            oklch(from var(--color-gold-200) l c h / 0.04) 50%,
+            oklch(from var(--color-gold-200) l c h / 0.04) 100%
+        ),
+        radial-gradient(
+            circle at 26% 17%,
+            oklch(from var(--color-gold-800) l c h / 0.04) 0%,
+            oklch(from var(--color-gold-800) l c h / 0.04) 50%,
+            oklch(from var(--color-gold-50) l c h / 0.04) 50%,
+            oklch(from var(--color-gold-50) l c h / 0.04) 100%
+        ),
+        radial-gradient(
+            circle at 44% 60%,
+            oklch(from var(--color-gold-400) l c h / 0.04) 0%,
+            oklch(from var(--color-gold-400) l c h / 0.04) 50%,
+            oklch(from var(--color-gold-300) l c h / 0.04) 50%,
+            oklch(from var(--color-gold-300) l c h / 0.04) 100%
+        ),
+        linear-gradient(
+            19deg,
+            oklch(from var(--color-gold-600) l c h / 0.5),
+            oklch(from var(--color-gold-900) l c h / 0.8)
+        );
 }
