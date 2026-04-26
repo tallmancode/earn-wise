@@ -38,10 +38,6 @@ class DatabaseSeeder extends Seeder
         $branchA = Branch::create(['company_id' => $company->id, 'name' => 'Spar Bellville']);
         $branchB = Branch::create(['company_id' => $company->id, 'name' => 'Spar Gardens']);
 
-        // Create two employees in different branches
-        $emp1 = Employee::create(['company_id' => $company->id, 'branch_id' => $branchA->id, 'name' => 'Alice Nkosi']);
-        $emp2 = Employee::create(['company_id' => $company->id, 'branch_id' => $branchB->id, 'name' => 'Bob Dlamini']);
-
         // Create users
         $managerUser = User::create([
             'name' => 'Admin Manager',
@@ -56,6 +52,13 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
         $viewerUser->assignRole('viewer');
+
+        // Create two employees in different branches, linked to manager (belongs to both branches)
+        $emp1 = Employee::create(['company_id' => $company->id, 'branch_id' => $branchA->id, 'user_id' => $managerUser->id, 'name' => 'Alice Nkosi']);
+        $emp2 = Employee::create(['company_id' => $company->id, 'branch_id' => $branchB->id, 'user_id' => $managerUser->id, 'name' => 'Bob Dlamini']);
+
+        // Viewer only linked to branchA
+        Employee::create(['company_id' => $company->id, 'branch_id' => $branchA->id, 'user_id' => $viewerUser->id, 'name' => 'View Only']);
 
         // Seed the two commission notes as per the exercise
         CommissionNote::create([
