@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
-import { computed, h, resolveComponent, watch } from 'vue';
+import { computed, h, ref, resolveComponent, watch } from 'vue';
 import {
     destroy as destroyAction,
     store as storeAction,
@@ -8,7 +8,13 @@ import {
 } from '@/actions/App/Http/Controllers/CommissionNoteController';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useNoteStore } from '@/stores/noteStore';
-import type { Branch, CommissionNote, Company, Employee } from '@/types/auth';
+import type {
+    Branch,
+    CommissionNote,
+    CommissionNoteAudit,
+    Company,
+    Employee,
+} from '@/types/auth';
 
 defineOptions({ layout: AppLayout });
 
@@ -39,6 +45,86 @@ const employeeItems = computed(() => [
     { label: 'All Employees', value: null },
     ...props.employees.map((e) => ({ label: e.name, value: e.id })),
 ]);
+
+// ── Export URL ────────────────────────────────────────────────────────────────
+
+const exportUrl = computed(
+    () =>
+        `/companies/${props.company.id}/branches/${props.branch.id}/notes/export`,
+);
+
+// ── Audit History modal ───────────────────────────────────────────────────────
+
+const historyNote = ref<CommissionNote | null>(null);
+
+function openHistory(note: CommissionNote) {
+    historyNote.value = note;
+}
+
+function closeHistory() {
+    historyNote.value = null;
+}
+
+const eventLabels: Record<CommissionNoteAudit['event'], string> = {
+    created: 'Created',
+    updated: 'Updated',
+    deleted: 'Deleted',
+};
+
+const eventColors: Record<CommissionNoteAudit['event'], string> = {
+    created: 'success',
+    updated: 'info',
+    deleted: 'error',
+};
+
+function formatDate(iso: string) {
+    return new Date(iso).toLocaleString('en-ZA', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+}
+
+function auditDiff(audit: CommissionNoteAudit): string[] {
+    if (audit.event !== 'updated' || !audit.old_values || !audit.new_values) {
+        return [];
+    }
+
+    const changes: string[] = [];
+    const watched = [
+        'amount',
+        'description',
+        'payment_date',
+        'employee_id',
+    ] as const;
+
+    for (const key of watched) {
+        const oldVal = audit.old_values[key];
+        const newVal = audit.new_values[key];
+
+        if (String(oldVal) !== String(newVal)) {
+            const label =
+                key === 'payment_date'
+                    ? 'Payment Date'
+                    : key === 'employee_id'
+                      ? 'Employee'
+                      : key.charAt(0).toUpperCase() + key.slice(1);
+            const fmtOld =
+                key === 'amount'
+                    ? `R ${Number(oldVal).toLocaleString('en-ZA', { minimumFractionDigits: 2 })}`
+                    : String(oldVal ?? '—');
+            const fmtNew =
+                key === 'amount'
+                    ? `R ${Number(newVal).toLocaleString('en-ZA', { minimumFractionDigits: 2 })}`
+                    : String(newVal ?? '—');
+            changes.push(`${label}: ${fmtOld} → ${fmtNew}`);
+        }
+    }
+
+    return changes;
+}
 
 // ── Create form ──────────────────────────────────────────────────────────────
 
@@ -174,12 +260,24 @@ const columns = [
                 <p class="mt-1 text-sm text-muted">Commission Notes</p>
             </div>
 
-            <UButton
-                v-if="canManage"
-                label="Add Note"
-                icon="i-lucide-plus"
-                @click="noteStore.openCreate()"
-            />
+            <div class="flex items-center gap-2">
+                <UButton
+                    :href="exportUrl"
+                    as="a"
+                    target="_blank"
+                    label="Export CSV"
+                    icon="i-lucide-download"
+                    color="neutral"
+                    variant="outline"
+                    size="sm"
+                />
+                <UButton
+                    v-if="canManage"
+                    label="Add Note"
+                    icon="i-lucide-plus"
+                    @click="noteStore.openCreate()"
+                />
+            </div>
         </div>
 
         <!-- Employee filter -->
@@ -202,6 +300,14 @@ const columns = [
             >
                 <template #actions-data="{ row }">
                     <div class="flex items-center gap-2">
+                        <UButton
+                            label="History"
+                            color="neutral"
+                            variant="ghost"
+                            size="xs"
+                            icon="i-lucide-history"
+                            @click="openHistory(row.original)"
+                        />
                         <UButton
                             v-if="
                                 canManage ||
@@ -232,7 +338,101 @@ const columns = [
         </UCard>
     </div>
 
-    <!-- Create / Edit Slideover -->
+    <!-- ── Audit History Modal ─────────────────────────────────────────────── -->
+    <UModal
+        :open="historyNote !== null"
+        title="Note History"
+        :description="
+            historyNote
+                ? `Audit trail for ${historyNote.employee?.name ?? 'this employee'}'s commission note`
+                : ''
+        "
+        @close="closeHistory"
+    >
+        <template #body>
+            <div v-if="historyNote">
+                <div
+                    v-if="
+                        !historyNote.audits || historyNote.audits.length === 0
+                    "
+                    class="py-8 text-center text-sm text-(--ui-text-muted)"
+                >
+                    No audit history available.
+                </div>
+                <ol
+                    v-else
+                    class="relative ml-3 space-y-4 border-l border-gray-200 dark:border-gray-700"
+                >
+                    <li
+                        v-for="audit in historyNote.audits"
+                        :key="audit.id"
+                        class="ml-4"
+                    >
+                        <span
+                            class="absolute -left-1.5 flex size-3 items-center justify-center rounded-full border-2 border-white bg-(--ui-primary) dark:border-gray-900"
+                        />
+                        <div class="flex flex-wrap items-center gap-2">
+                            <UBadge
+                                :color="eventColors[audit.event] as any"
+                                variant="subtle"
+                                size="xs"
+                            >
+                                {{ eventLabels[audit.event] }}
+                            </UBadge>
+                            <span
+                                class="text-sm font-medium text-(--ui-text-highlighted)"
+                            >
+                                {{ audit.actor?.name ?? 'Unknown' }}
+                            </span>
+                            <span class="text-xs text-(--ui-text-muted)">
+                                {{ formatDate(audit.created_at) }}
+                            </span>
+                        </div>
+                        <ul
+                            v-if="auditDiff(audit).length > 0"
+                            class="mt-1 space-y-0.5"
+                        >
+                            <li
+                                v-for="change in auditDiff(audit)"
+                                :key="change"
+                                class="text-xs text-(--ui-text-muted)"
+                            >
+                                &bull; {{ change }}
+                            </li>
+                        </ul>
+                        <p
+                            v-else-if="
+                                audit.event === 'created' && audit.new_values
+                            "
+                            class="mt-1 text-xs text-(--ui-text-muted)"
+                        >
+                            Amount: R
+                            {{
+                                Number(
+                                    audit.new_values['amount'],
+                                ).toLocaleString('en-ZA', {
+                                    minimumFractionDigits: 2,
+                                })
+                            }}
+                            &middot; {{ audit.new_values['payment_date'] }}
+                        </p>
+                    </li>
+                </ol>
+            </div>
+        </template>
+        <template #footer>
+            <div class="flex justify-end">
+                <UButton
+                    label="Close"
+                    color="neutral"
+                    variant="ghost"
+                    @click="closeHistory"
+                />
+            </div>
+        </template>
+    </UModal>
+
+    <!-- ── Create / Edit Slideover ─────────────────────────────────────────── -->
     <USlideover
         v-model:open="noteStore.isPanelOpen"
         :title="
