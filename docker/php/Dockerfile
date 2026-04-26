@@ -1,11 +1,11 @@
-FROM node:20-alpine as node-build
+FROM node:20-alpine AS node-build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --prefer-offline
 COPY resources/ ./resources/
 RUN npm run build || echo "No build script"
 
-FROM composer:2 as composer-deps
+FROM composer:2 AS composer-deps
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
