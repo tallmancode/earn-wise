@@ -2,6 +2,7 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref, shallowRef } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
+import CompanySwitcher from '@/components/CompanySwitcher.vue';
 import type { User } from '@/types/auth';
 
 const page = usePage();
@@ -37,10 +38,12 @@ const panelUi = shallowRef({});
             >
                 <template #header>
                     <Link href="/dashboard" class="flex items-center px-1">
-                        <AppLogo class="h-7 w-auto" />
+                        <AppLogo class="h-auto w-full" />
                     </Link>
                 </template>
-
+                <USeparator :ui="{ border: 'border-white-100/80' }" />
+                <CompanySwitcher :collapsed="isCollapsed" />
+                <USeparator :ui="{ border: 'border-white-100/80' }" />
                 <UNavigationMenu
                     :items="
                         navLinks.map((link) => ({
