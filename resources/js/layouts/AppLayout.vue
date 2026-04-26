@@ -7,14 +7,26 @@ import type { User } from '@/types/auth';
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user as User | undefined);
+const isManager = computed(() =>
+    (((page.props.auth as any)?.roles as string[]) ?? []).includes('manager'),
+);
 
-const navLinks = [
+const navLinks = computed(() => [
     {
         label: 'Dashboard',
         icon: 'i-lucide-layout-dashboard',
         href: '/dashboard',
     },
-];
+    ...(isManager.value
+        ? [
+              {
+                  label: 'Users',
+                  icon: 'i-lucide-users',
+                  href: '/users',
+              },
+          ]
+        : []),
+]);
 const open = ref(false);
 const isCollapsed = ref(false);
 const panelUi = shallowRef({});

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\CompanySwitchController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -22,3 +23,8 @@ Route::inertia('/dashboard', 'Dashboard/Index')
 Route::post('/company/switch', [CompanySwitchController::class, 'store'])
     ->name('company.switch')
     ->middleware('auth');
+
+Route::middleware(['auth', 'role:manager'])->group(function () {
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+});
