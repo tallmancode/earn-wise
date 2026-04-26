@@ -9,8 +9,12 @@ rm -f public/hot
 # The bind-mounted volume means the output lands on the host too, so
 # subsequent starts skip this step entirely.
 if [ ! -d public/build ] || [ -z "$(ls -A public/build 2>/dev/null)" ]; then
-    echo "[entrypoint] Building frontend assets..."
-    npm run build
+    if command -v npm > /dev/null 2>&1; then
+        echo "[entrypoint] Building frontend assets..."
+        npm run build
+    else
+        echo "[entrypoint] WARNING: npm not found, skipping frontend build. Run 'npm run build' on the host first."
+    fi
 fi
 
 exec php-fpm
