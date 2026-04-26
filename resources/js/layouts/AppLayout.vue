@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
-import { computed, ref, shallowRef } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import CompanySwitcher from '@/components/CompanySwitcher.vue';
 import NotificationBell from '@/components/NotificationBell.vue';
@@ -54,7 +54,6 @@ const navLinks = computed(() => [
 ]);
 const open = ref(false);
 const isCollapsed = ref(false);
-const panelUi = shallowRef({});
 </script>
 
 <template>
@@ -127,8 +126,7 @@ const panelUi = shallowRef({});
                                     {
                                         label: 'Sign out',
                                         icon: 'i-lucide-log-out',
-                                        onSelect: () =>
-                                            $inertia.post('/logout'),
+                                        onSelect: () => router.post('/logout'),
                                     },
                                 ],
                             ]"
@@ -147,11 +145,8 @@ const panelUi = shallowRef({});
             </UDashboardSidebar>
             <UDashboardPanel
                 :ui="{
-                    ...panelUi,
-                    ...{
-                        body: 'sm:p-0 sm:pb-4 sm:pt-20 scroll-smooth',
-                        root: 'pr-4 ',
-                    },
+                    body: 'sm:p-0 sm:pb-4 sm:pt-20 scroll-smooth',
+                    root: 'pr-4 ',
                 }"
             >
                 <template #header>

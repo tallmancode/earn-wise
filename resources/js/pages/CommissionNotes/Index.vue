@@ -72,12 +72,14 @@ const eventLabels: Record<CommissionNoteAudit['event'], string> = {
     created: 'Created',
     updated: 'Updated',
     deleted: 'Deleted',
+    restored: 'Restored',
 };
 
 const eventColors: Record<CommissionNoteAudit['event'], string> = {
     created: 'success',
     updated: 'info',
     deleted: 'error',
+    restored: 'warning',
 };
 
 function formatDate(iso: string) {
