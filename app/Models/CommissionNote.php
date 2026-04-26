@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CommissionNote extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'company_id', 'branch_id', 'employee_id',
         'created_by', 'amount', 'description', 'payment_date',
