@@ -33,5 +33,19 @@ export type Auth = {
     user: User;
     companies: Company[];
     selectedCompanyId: number | null;
+    branches: Branch[];
     roles: string[];
+};
+
+export type CommissionNote = {
+    id: number;
+    company_id: number;
+    branch_id: number;
+    employee_id: number;
+    created_by: number;
+    amount: string; // decimal cast serialises as string
+    description: string | null;
+    payment_date: string;
+    employee?: Employee;
+    author?: Pick<User, 'id' | 'name'>;
 };

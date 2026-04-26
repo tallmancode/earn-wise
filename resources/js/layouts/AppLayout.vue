@@ -3,19 +3,21 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref, shallowRef } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import CompanySwitcher from '@/components/CompanySwitcher.vue';
-import type { User } from '@/types/auth';
+import type { Auth, Branch, User } from '@/types/auth';
 
 const page = usePage();
-const user = computed(() => page.props.auth?.user as User | undefined);
-const isManager = computed(() =>
-    (((page.props.auth as any)?.roles as string[]) ?? []).includes('manager'),
-);
+const auth = computed(() => page.props.auth as Auth | undefined);
+const user = computed(() => auth.value?.user as User | undefined);
+const isManager = computed(() => (auth.value?.roles ?? []).includes('manager'));
+const selectedCompanyId = computed(() => auth.value?.selectedCompanyId ?? null);
+const branches = computed<Branch[]>(() => auth.value?.branches ?? []);
 
 const navLinks = computed(() => [
     {
         label: 'Dashboard',
         icon: 'i-lucide-layout-dashboard',
         href: '/dashboard',
+        children: undefined as undefined | { label: string; href: string }[],
     },
     ...(isManager.value
         ? [
@@ -23,6 +25,28 @@ const navLinks = computed(() => [
                   label: 'Users',
                   icon: 'i-lucide-users',
                   href: '/users',
+                  children: undefined as
+                      | undefined
+                      | { label: string; href: string }[],
+              },
+          ]
+        : []),
+    ...(selectedCompanyId.value && branches.value.length
+        ? [
+              {
+                  label: 'Commission Notes',
+                  icon: 'i-lucide-file-text',
+                  href:
+                      branches.value.length === 1
+                          ? `/companies/${selectedCompanyId.value}/branches/${branches.value[0]!.id}/notes`
+                          : undefined,
+                  children:
+                      branches.value.length > 1
+                          ? branches.value.map((b) => ({
+                                label: b.name,
+                                href: `/companies/${selectedCompanyId.value}/branches/${b.id}/notes`,
+                            }))
+                          : undefined,
               },
           ]
         : []),
@@ -57,12 +81,24 @@ const panelUi = shallowRef({});
                 <CompanySwitcher :collapsed="isCollapsed" />
                 <USeparator :ui="{ border: 'border-white-100/80' }" />
                 <UNavigationMenu
+                    :ui="{
+                        link: 'before:bg-transparent data-[active]:text-primary-500 text-white-50',
+                        linkLeadingIcon:
+                            'group-data-[active]:text-primary-500 text-white-50',
+                    }"
                     :items="
                         navLinks.map((link) => ({
                             label: link.label,
                             icon: link.icon,
-                            to: link.href,
-                            as: 'a',
+                            ...(link.children
+                                ? {
+                                      children: link.children.map((child) => ({
+                                          label: child.label,
+                                          to: child.href,
+                                          as: 'a',
+                                      })),
+                                  }
+                                : { to: link.href, as: 'a' }),
                         }))
                     "
                     orientation="vertical"
