@@ -180,10 +180,6 @@ const panelUi = shallowRef({});
                                         class="h-6"
                                         orientation="vertical"
                                     />
-                                    <!--                                <span-->
-                                    <!--                                    v-if="pageLabel"-->
-                                    <!--                                    class="truncate text-sm font-semibold text-light-50"-->
-                                    <!--                                >{{ pageLabel }}</span>-->
                                 </div>
                             </template>
                             <template #right>
@@ -191,43 +187,16 @@ const panelUi = shallowRef({});
                                     :ui="{ leadingIcon: 'text-white-50' }"
                                     variant="link"
                                 />
-                                <!--                            <UTooltip :shortcuts="['N']" text="Notifications">-->
-                                <!--                                <UButton-->
-                                <!--                                    :disabled="workspaceLocked"-->
-                                <!--                                    color="white"-->
-                                <!--                                    square-->
-                                <!--                                    variant="link"-->
-                                <!--                                >-->
-                                <!--                                    <UChip-->
-                                <!--                                        color="error"-->
-                                <!--                                        inset-->
-                                <!--                                        @click="isNotificationsSlideoverOpen = true"-->
-                                <!--                                    >-->
-                                <!--                                        <UIcon class="size-5 shrink-0" name="i-lucide-bell" />-->
-                                <!--                                    </UChip>-->
-                                <!--                                </UButton>-->
-                                <!--                            </UTooltip>-->
                             </template>
                         </UDashboardNavbar>
                     </div>
                 </template>
                 <template #body>
-                    <div class="flex min-h-0 flex-1 flex-col">
+                    <div class="flex min-h-0 flex-1 flex-col pr-4 pl-2">
                         <slot />
                     </div>
                 </template>
             </UDashboardPanel>
-            <!--        <div class="flex min-h-screen flex-1 flex-col overflow-hidden">-->
-            <!--            <UDashboardNavbar>-->
-            <!--                <template #right>-->
-            <!--                    <UColorModeButton />-->
-            <!--                </template>-->
-            <!--            </UDashboardNavbar>-->
-
-            <!--            <main class="flex-1 overflow-y-auto p-6">-->
-            <!--                <slot />-->
-            <!--            </main>-->
-            <!--        </div>-->
         </UDashboardGroup>
     </div>
 </template>

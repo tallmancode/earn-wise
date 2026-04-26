@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Branch;
+use App\Models\CommissionNote;
 use App\Models\Company;
 use App\Models\Employee;
 use App\Models\User;
@@ -81,4 +82,61 @@ it('creates a note successfully with manage permission', function () {
         'employee_id' => $employee->id,
         'amount' => 10000,
     ]);
+});
+
+it('forbids updating a note the view-only user did not author', function () {
+    $author = User::factory()->create();
+    $author->givePermissionTo(['view commission notes', 'manage commission notes']);
+
+    $viewer = User::factory()->create();
+    $viewer->givePermissionTo('view commission notes');
+
+    $note = CommissionNote::factory()->create(['created_by' => $author->id]);
+
+    $this->actingAs($viewer)->patch(route('notes.update', $note), [
+        'amount' => 99999,
+        'payment_date' => now()->toDateString(),
+    ])->assertForbidden();
+});
+
+it('allows a view-only user to update a note they authored', function () {
+    $viewer = User::factory()->create();
+    $viewer->givePermissionTo('view commission notes');
+
+    $note = CommissionNote::factory()->create(['created_by' => $viewer->id]);
+
+    $this->actingAs($viewer)->patch(route('notes.update', $note), [
+        'amount' => 12000,
+        'payment_date' => now()->toDateString(),
+    ])->assertRedirect();
+
+    $this->assertDatabaseHas('commission_notes', [
+        'id' => $note->id,
+        'amount' => 12000,
+    ]);
+});
+
+it('forbids deleting a note the view-only user did not author', function () {
+    $author = User::factory()->create();
+    $author->givePermissionTo(['view commission notes', 'manage commission notes']);
+
+    $viewer = User::factory()->create();
+    $viewer->givePermissionTo('view commission notes');
+
+    $note = CommissionNote::factory()->create(['created_by' => $author->id]);
+
+    $this->actingAs($viewer)->delete(route('notes.destroy', $note))
+        ->assertForbidden();
+});
+
+it('allows the original author to delete their own note', function () {
+    $author = User::factory()->create();
+    $author->givePermissionTo('view commission notes');
+
+    $note = CommissionNote::factory()->create(['created_by' => $author->id]);
+
+    $this->actingAs($author)->delete(route('notes.destroy', $note))
+        ->assertRedirect();
+
+    $this->assertDatabaseMissing('commission_notes', ['id' => $note->id]);
 });

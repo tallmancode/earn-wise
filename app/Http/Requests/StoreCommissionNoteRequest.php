@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Branch;
+use App\Models\Company;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreCommissionNoteRequest extends FormRequest
@@ -9,6 +11,21 @@ class StoreCommissionNoteRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user()->can('manage commission notes');
+    }
+
+    /**
+     * Force company_id and branch_id to match the route-bound models so that
+     * a caller cannot POST a mismatched scope through the request body.
+     */
+    protected function prepareForValidation(): void
+    {
+        $company = $this->route('company');
+        $branch = $this->route('branch');
+
+        $this->merge([
+            'company_id' => $company instanceof Company ? $company->id : (int) $company,
+            'branch_id' => $branch instanceof Branch ? $branch->id : (int) $branch,
+        ]);
     }
 
     public function rules(): array

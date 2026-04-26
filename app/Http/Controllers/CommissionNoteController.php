@@ -50,8 +50,6 @@ class CommissionNoteController extends Controller
 
     public function destroy(CommissionNote $note): RedirectResponse
     {
-        $this->authorize('manage commission notes');
-
         $this->service->delete($note);
 
         return back()->with('success', 'Commission note deleted.');
