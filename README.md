@@ -92,7 +92,6 @@ The seeder creates the following out-of-the-box accounts and data.
 |-------|----------|------|
 | `manager@example.com` | `password` | manager |
 | `viewer@example.com` | `password` | viewer |
-| `test@example.com` | `password` | *(none)* |
 
 ### Sample data
 

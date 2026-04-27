@@ -42,7 +42,7 @@ class StoreCommissionNoteRequest extends FormRequest
                     ->where('company_id', $this->company_id)
                 ),
             ],
-            'amount' => ['required', 'numeric', 'min:0'],
+            'amount' => ['required', 'numeric', 'min:1'],
             'description' => ['nullable', 'string', 'max:1000'],
             'payment_date' => ['required', 'date'],
         ];

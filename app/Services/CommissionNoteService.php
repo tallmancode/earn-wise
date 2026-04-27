@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Events\CommissionNoteCreated;
 use App\Models\CommissionNote;
 use App\Models\CommissionNoteAudit;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 
@@ -43,6 +44,12 @@ class CommissionNoteService
 
     public function update(CommissionNote $note, array $validated): CommissionNote
     {
+        throw_unless(
+            Auth::user()?->can('manage commission notes') || $note->created_by === Auth::id(),
+            AuthorizationException::class,
+            'You are not allowed to edit this note.',
+        );
+
         $oldValues = $this->auditableValues($note);
 
         $note->update([
@@ -60,6 +67,12 @@ class CommissionNoteService
 
     public function delete(CommissionNote $note): void
     {
+        throw_unless(
+            Auth::user()?->can('manage commission notes') || $note->created_by === Auth::id(),
+            AuthorizationException::class,
+            'You are not allowed to delete this note.',
+        );
+
         $this->recordAudit('deleted', $note->id, $this->auditableValues($note), null);
 
         $note->delete();

@@ -59,6 +59,7 @@ export type CommissionNote = {
     amount: string; // decimal cast serialises as string
     description: string | null;
     payment_date: string;
+    deleted_at?: string | null;
     employee?: Employee;
     author?: Pick<User, 'id' | 'name'>;
     audits?: CommissionNoteAudit[];
