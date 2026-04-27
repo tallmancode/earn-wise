@@ -19,12 +19,14 @@ class CommissionNotePolicy
 
     public function update(User $user, CommissionNote $note): bool
     {
-        return $user->can('manage commission notes');
+        return $user->id === $note->created_by
+            || $user->can('manage commission notes');
     }
 
     public function delete(User $user, CommissionNote $note): bool
     {
-        return $user->can('manage commission notes');
+        return $user->id === $note->created_by
+            || $user->can('manage commission notes');
     }
 
     public function restore(User $user, CommissionNote $note): bool

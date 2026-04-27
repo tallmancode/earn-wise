@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm, Link  } from '@inertiajs/vue3';
+import { Head, useForm, Link } from '@inertiajs/vue3';
 import AppLogo from '@/components/AppLogo.vue';
 import GuestLayout from '@/layouts/GuestLayout.vue';
 

@@ -14,13 +14,29 @@ beforeEach(function () {
     Permission::create(['name' => 'manage commission notes']);
 });
 
-it('throws an authorization exception when a view-only author tries to update their note', function () {
+it('allows the original author to update their own note', function () {
     $author = User::factory()->create();
     $author->givePermissionTo('view commission notes');
 
-    $note = CommissionNote::factory()->create(['created_by' => $author->id]);
+    $note = CommissionNote::factory()->create(['created_by' => $author->id, 'amount' => 10000]);
 
     $this->actingAs($author);
+
+    $updated = (new CommissionNoteService)->update($note, [
+        'amount' => 15000,
+        'payment_date' => now()->toDateString(),
+    ]);
+
+    expect($updated->amount)->toBe('15000.00');
+});
+
+it('throws when a non-author without manage permission tries to update', function () {
+    $nonAuthor = User::factory()->create();
+    $nonAuthor->givePermissionTo('view commission notes');
+
+    $note = CommissionNote::factory()->create();
+
+    $this->actingAs($nonAuthor);
 
     expect(fn () => (new CommissionNoteService)->update($note, [
         'amount' => 15000,
@@ -44,18 +60,4 @@ it('allows a manager to edit someone elses note', function () {
     ]);
 
     expect($updated->amount)->toBe('25000.00');
-});
-
-it('throws an authorization exception when a non-author without manage permission tries to update', function () {
-    $nonAuthor = User::factory()->create();
-    $nonAuthor->givePermissionTo('view commission notes');
-
-    $note = CommissionNote::factory()->create();
-
-    $this->actingAs($nonAuthor);
-
-    expect(fn () => (new CommissionNoteService)->update($note, [
-        'amount' => 99999,
-        'payment_date' => now()->toDateString(),
-    ]))->toThrow(AuthorizationException::class);
 });
