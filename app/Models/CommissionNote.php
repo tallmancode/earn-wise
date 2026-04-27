@@ -17,7 +17,13 @@ class CommissionNote extends Model
         'created_by', 'amount', 'description', 'payment_date',
     ];
 
-    protected $casts = ['amount' => 'decimal:2', 'payment_date' => 'date'];
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'payment_date' => 'date',
+        ];
+    }
 
     public function company(): BelongsTo
     {

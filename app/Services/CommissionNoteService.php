@@ -69,7 +69,7 @@ class CommissionNoteService
     {
         $note->restore();
 
-        $this->recordAudit('created', $note->id, null, $this->auditableValues($note));
+        $this->recordAudit('restored', $note->id, null, $this->auditableValues($note));
 
         return $note;
     }
