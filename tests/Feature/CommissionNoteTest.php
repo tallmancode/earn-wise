@@ -99,13 +99,13 @@ it('forbids updating a note the view-only user did not author', function () {
     ])->assertForbidden();
 });
 
-it('allows a view-only user to update a note they authored', function () {
-    $viewer = User::factory()->create();
-    $viewer->givePermissionTo('view commission notes');
+it('allows the author to update their own note', function () {
+    $author = User::factory()->create();
+    $author->givePermissionTo('view commission notes');
 
-    $note = CommissionNote::factory()->create(['created_by' => $viewer->id]);
+    $note = CommissionNote::factory()->create(['created_by' => $author->id]);
 
-    $this->actingAs($viewer)->patch(route('notes.update', $note), [
+    $this->actingAs($author)->patch(route('notes.update', $note), [
         'amount' => 12000,
         'payment_date' => now()->toDateString(),
     ])->assertRedirect();
@@ -129,7 +129,7 @@ it('forbids deleting a note the view-only user did not author', function () {
         ->assertForbidden();
 });
 
-it('allows the original author to delete their own note', function () {
+it('allows the author to delete their own note', function () {
     $author = User::factory()->create();
     $author->givePermissionTo('view commission notes');
 
@@ -162,6 +162,32 @@ it('does not return notes from other branches', function () {
         ->assertInertia(fn ($page) => $page
             ->component('CommissionNotes/Index')
             ->where('notes.data', fn ($notes) => collect($notes)->pluck('id')->doesntContain($note->id)
+            )
+        );
+});
+
+it('does not return notes from other companies', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('view commission notes');
+
+    $companyA = Company::factory()->create();
+    $companyB = Company::factory()->create();
+    $branchA = Branch::factory()->for($companyA)->create();
+    $branchB = Branch::factory()->for($companyB)->create();
+    $employeeB = Employee::factory()->for($companyB)->for($branchB)->create();
+
+    $noteFromB = CommissionNote::factory()->create([
+        'company_id' => $companyB->id,
+        'branch_id' => $branchB->id,
+        'employee_id' => $employeeB->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('notes.index', [$companyA, $branchA]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('CommissionNotes/Index')
+            ->where('notes.data', fn ($notes) => collect($notes)->pluck('id')->doesntContain($noteFromB->id)
             )
         );
 });
