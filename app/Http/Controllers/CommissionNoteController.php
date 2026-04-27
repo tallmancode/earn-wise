@@ -45,8 +45,6 @@ class CommissionNoteController extends Controller
 
     public function update(UpdateCommissionNoteRequest $request, CommissionNote $note): RedirectResponse
     {
-        $this->authorize('update', $note);
-
         $this->service->update($note, $request->validated());
 
         return back()->with('success', 'Commission note updated.');

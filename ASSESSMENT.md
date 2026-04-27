@@ -30,7 +30,12 @@ Users without either permission are denied access to the notes area entirely (HT
 Spatie's permission system is used at the permission level (`can('view commission notes')`) rather than the role level (`hasRole('manager')`). This makes it easy to add new roles or reassign permissions later without touching the authorization code.
 
 ### Author-bypass on edit and delete
-The spec states "only the original author may edit a note unless the user has manage commission notes". The same principle is applied to deletion — an author can delete their own note, a manager can delete anyone's note. This is enforced in `CommissionNoteService` and the controller delegates fully to the service rather than duplicating the check.
+The spec states "only the original author may edit a note unless the user has manage commission notes". The same principle is applied to deletion — an author can delete their own note, a manager can delete anyone's note.
+
+Enforcement uses a deliberate dual-layer approach:
+
+1. **HTTP layer (policy)** — `CommissionNotePolicy::update()` and `CommissionNotePolicy::delete()` act as a coarse gate checked by the `UpdateCommissionNoteRequest::authorize()` method and by `$this->authorize()` in the controller's `destroy()` action. This rejects unauthorised HTTP requests early with a 403 before any service code runs.
+2. **Business-logic layer (service)** — `CommissionNoteService::update()` and `CommissionNoteService::delete()` each open with a `throw_unless(...)` guard that re-checks the same author-or-manage rule and throws `AuthorizationException` if it fails. This ensures the rule is enforced even if the service is called from outside the HTTP layer (e.g. console commands, queued jobs, or tests that bypass the controller).
 
 ### No separate API layer
 All data transfer goes through Inertia shared props and controller responses. There is no `/api` prefix or JSON-only endpoint. This keeps the surface area small for an internal tool and avoids duplicating authorization logic.

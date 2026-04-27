@@ -18,7 +18,7 @@ class UpdateCommissionNoteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount' => ['required', 'numeric', 'min:0'],
+            'amount' => ['required', 'numeric', 'min:1'],
             'description' => ['nullable', 'string', 'max:1000'],
             'payment_date' => ['required', 'date'],
         ];
