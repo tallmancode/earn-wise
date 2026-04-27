@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Link, router, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
-import AppLogo from '@/components/AppLogo.vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed, ref, shallowRef } from 'vue';
+import AppLogoLight from "@/components/AppLogoLight.vue";
 import CompanySwitcher from '@/components/CompanySwitcher.vue';
 import NotificationBell from '@/components/NotificationBell.vue';
 import type { Auth, Branch, User } from '@/types/auth';
@@ -54,6 +54,7 @@ const navLinks = computed(() => [
 ]);
 const open = ref(false);
 const isCollapsed = ref(false);
+const panelUi = shallowRef({});
 </script>
 
 <template>
@@ -74,7 +75,7 @@ const isCollapsed = ref(false);
             >
                 <template #header>
                     <Link href="/dashboard" class="flex items-center px-1">
-                        <AppLogo class="h-auto w-full" />
+                        <AppLogoLight class="h-auto w-full" />
                     </Link>
                 </template>
                 <USeparator :ui="{ border: 'border-white-100/80' }" />
@@ -126,7 +127,8 @@ const isCollapsed = ref(false);
                                     {
                                         label: 'Sign out',
                                         icon: 'i-lucide-log-out',
-                                        onSelect: () => router.post('/logout'),
+                                        onSelect: () =>
+                                            $inertia.post('/logout'),
                                     },
                                 ],
                             ]"
@@ -145,8 +147,11 @@ const isCollapsed = ref(false);
             </UDashboardSidebar>
             <UDashboardPanel
                 :ui="{
-                    body: 'sm:p-0 sm:pb-4 sm:pt-20 scroll-smooth',
-                    root: 'pr-4 ',
+                    ...panelUi,
+                    ...{
+                        body: 'sm:p-0 sm:pb-4 sm:pt-20 scroll-smooth',
+                        root: 'pr-4 ',
+                    },
                 }"
             >
                 <template #header>
