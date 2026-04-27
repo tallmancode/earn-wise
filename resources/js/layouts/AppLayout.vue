@@ -70,8 +70,8 @@ const panelUi = shallowRef({});
                     footer: 'lg:border-t border-white-100/80',
                     header: `${isCollapsed ? 'p-3 h-[64px]' : ''}`,
                 }"
-                collapsible
-                resizable
+                :collapsible="true"
+                :resizable="true"
             >
                 <template #header>
                     <Link href="/dashboard" class="flex items-center px-1">
@@ -107,17 +107,15 @@ const panelUi = shallowRef({});
                 />
 
                 <template #footer>
-                    <div class="flex items-center gap-3 px-2 py-1">
+                    <div class="flex items-center gap-1 px-1 py-1">
                         <UAvatar :alt="user?.name" size="sm" />
                         <div class="flex min-w-0 flex-col">
                             <span
-                                class="truncate text-sm font-medium text-(--ui-text-highlighted)"
+                                class="truncate text-sm font-medium text-white-50"
                             >
                                 {{ user?.name }}
                             </span>
-                            <span
-                                class="truncate text-xs text-(--ui-text-muted)"
-                            >
+                            <span class="truncate text-xs text-white-50">
                                 {{ user?.email }}
                             </span>
                         </div>
@@ -138,7 +136,7 @@ const panelUi = shallowRef({});
                                 variant="ghost"
                                 icon="i-lucide-ellipsis-vertical"
                                 size="sm"
-                                class="ml-auto shrink-0"
+                                class="text-light-50 ml-auto shrink-0"
                                 aria-label="User menu"
                             />
                         </UDropdownMenu>

@@ -7,38 +7,32 @@ use App\Models\CommissionNote;
 use App\Models\Company;
 use App\Models\Employee;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // Create permissions
+        // Permissions & roles
         Permission::create(['name' => 'view commission notes']);
         Permission::create(['name' => 'manage commission notes']);
 
-        // Create roles
         $viewer = Role::create(['name' => 'viewer']);
         $viewer->givePermissionTo('view commission notes');
 
         $manager = Role::create(['name' => 'manager']);
         $manager->givePermissionTo(['view commission notes', 'manage commission notes']);
 
-        // Create company
-        $company = Company::create(['name' => 'Spar']);
+        // ── Spar (primary company with known fixed credentials) ──────────────
+        $spar = Company::create(['name' => 'Spar']);
 
-        // Create two branches
-        $branchA = Branch::create(['company_id' => $company->id, 'name' => 'Spar Bellville']);
-        $branchB = Branch::create(['company_id' => $company->id, 'name' => 'Spar Gardens']);
+        $bellville = Branch::create(['company_id' => $spar->id, 'name' => 'Spar Bellville']);
+        $gardens = Branch::create(['company_id' => $spar->id, 'name' => 'Spar Gardens']);
 
-        // Create users
         $managerUser = User::create([
             'name' => 'Admin Manager',
             'email' => 'manager@example.com',
@@ -53,17 +47,13 @@ class DatabaseSeeder extends Seeder
         ]);
         $viewerUser->assignRole('viewer');
 
-        // Create two employees in different branches, linked to manager (belongs to both branches)
-        $emp1 = Employee::create(['company_id' => $company->id, 'branch_id' => $branchA->id, 'user_id' => $managerUser->id, 'name' => 'Alice Nkosi']);
-        $emp2 = Employee::create(['company_id' => $company->id, 'branch_id' => $branchB->id, 'user_id' => $managerUser->id, 'name' => 'Bob Dlamini']);
+        $emp1 = Employee::create(['company_id' => $spar->id, 'branch_id' => $bellville->id, 'user_id' => $managerUser->id, 'name' => 'Alice Nkosi']);
+        $emp2 = Employee::create(['company_id' => $spar->id, 'branch_id' => $gardens->id,   'user_id' => $managerUser->id, 'name' => 'Bob Dlamini']);
+        Employee::create(['company_id' => $spar->id, 'branch_id' => $bellville->id, 'user_id' => $viewerUser->id, 'name' => 'View Only']);
 
-        // Viewer only linked to branchA
-        Employee::create(['company_id' => $company->id, 'branch_id' => $branchA->id, 'user_id' => $viewerUser->id, 'name' => 'View Only']);
-
-        // Seed the two commission notes as per the exercise
         CommissionNote::create([
-            'company_id' => $company->id,
-            'branch_id' => $branchA->id,
+            'company_id' => $spar->id,
+            'branch_id' => $bellville->id,
             'employee_id' => $emp1->id,
             'created_by' => $managerUser->id,
             'amount' => 10000.00,
@@ -72,17 +62,59 @@ class DatabaseSeeder extends Seeder
         ]);
 
         CommissionNote::create([
-            'company_id' => $company->id,
-            'branch_id' => $branchB->id,
+            'company_id' => $spar->id,
+            'branch_id' => $gardens->id,
             'employee_id' => $emp2->id,
             'created_by' => $managerUser->id,
             'amount' => 20000.00,
             'description' => 'Commission payment - Bob',
             'payment_date' => now()->toDateString(),
         ]);
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+
+        $this->command->info('Spar | manager@example.com | viewer@example.com | password: password');
+
+        // ── 4 additional factory companies ───────────────────────────────────
+        Company::factory()->count(4)->create()->each(function (Company $company) {
+            $slug = Str::slug($company->name);
+
+            $mgr = User::create([
+                'name' => 'Manager - '.$company->name,
+                'email' => 'manager@'.$slug.'.test',
+                'password' => Hash::make('password'),
+            ]);
+            $mgr->assignRole('manager');
+
+            $vwr = User::create([
+                'name' => 'Viewer - '.$company->name,
+                'email' => 'viewer@'.$slug.'.test',
+                'password' => Hash::make('password'),
+            ]);
+            $vwr->assignRole('viewer');
+
+            $branches = Branch::factory()->count(rand(3, 6))->create(['company_id' => $company->id]);
+
+            Employee::create([
+                'company_id' => $company->id,
+                'branch_id' => $branches->first()->id,
+                'user_id' => $mgr->id,
+                'name' => $mgr->name,
+            ]);
+
+            Employee::create([
+                'company_id' => $company->id,
+                'branch_id' => $branches->first()->id,
+                'user_id' => $vwr->id,
+                'name' => $vwr->name,
+            ]);
+
+            $branches->each(function (Branch $branch) use ($company) {
+                Employee::factory()->count(rand(5, 10))->create([
+                    'company_id' => $company->id,
+                    'branch_id' => $branch->id,
+                ]);
+            });
+
+            $this->command->info($company->name.' | manager@'.$slug.'.test | viewer@'.$slug.'.test | password: password');
+        });
     }
 }
