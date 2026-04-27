@@ -14,9 +14,9 @@ beforeEach(function () {
     Permission::create(['name' => 'manage commission notes']);
 });
 
-it('allows the original author to edit their own note', function () {
+it('allows the original author to edit their own note without manage permission', function () {
     $author = User::factory()->create();
-    $author->givePermissionTo('manage commission notes');
+    $author->givePermissionTo('view commission notes');
 
     $note = CommissionNote::factory()->create(['created_by' => $author->id]);
 

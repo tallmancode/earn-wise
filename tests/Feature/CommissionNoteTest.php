@@ -166,6 +166,32 @@ it('does not return notes from other branches', function () {
         );
 });
 
+it('does not return notes from other companies', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('view commission notes');
+
+    $companyA = Company::factory()->create();
+    $companyB = Company::factory()->create();
+    $branchA = Branch::factory()->for($companyA)->create();
+    $branchB = Branch::factory()->for($companyB)->create();
+    $employeeB = Employee::factory()->for($companyB)->for($branchB)->create();
+
+    $noteFromB = CommissionNote::factory()->create([
+        'company_id' => $companyB->id,
+        'branch_id' => $branchB->id,
+        'employee_id' => $employeeB->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('notes.index', [$companyA, $branchA]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('CommissionNotes/Index')
+            ->where('notes.data', fn ($notes) => collect($notes)->pluck('id')->doesntContain($noteFromB->id)
+            )
+        );
+});
+
 it('rejects negative commission amounts', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(['view commission notes', 'manage commission notes']);
