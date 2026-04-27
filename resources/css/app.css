@@ -1,0 +1,116 @@
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+:root {
+    --ui-header-height: 3rem;
+    --shadow-color: 0deg 0% 63%;
+    --shadow-elevation-medium:
+        0.3px 0.5px 0.7px hsl(var(--shadow-color) / 0.36),
+        0.8px 1.6px 2px -0.8px hsl(var(--shadow-color) / 0.36),
+        2.1px 4.1px 5.2px -1.7px hsl(var(--shadow-color) / 0.36),
+        5px 10px 12.6px -2.5px hsl(var(--shadow-color) / 0.36);
+}
+
+@theme static {
+    --font-sans:
+        Instrument Sans, ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+
+    --color-sage-50: oklch(0.952 0.048 152.68);
+    --color-sage-100: oklch(0.903 0.107 152.82);
+    --color-sage-200: oklch(0.805 0.114 152.89);
+    --color-sage-300: oklch(0.722 0.103 152.89);
+    --color-sage-400: oklch(0.627 0.089 152.71);
+    --color-sage-500: oklch(0.541 0.077 152.7);
+    --color-sage-600: oklch(0.458 0.065 152.76);
+    --color-sage-700: oklch(0.381 0.054 153.19);
+    --color-sage-800: oklch(0.297 0.041 152.95);
+    --color-sage-900: oklch(0.221 0.031 153.23);
+    --color-sage-950: oklch(0.173 0.023 152.29);
+
+    --color-gold-50: oklch(0.984 0.012 79.76);
+    --color-gold-100: oklch(0.958 0.03 76.96);
+    --color-gold-200: oklch(0.924 0.058 78.87);
+    --color-gold-300: oklch(0.882 0.102 81.8);
+    --color-gold-400: oklch(0.848 0.143 84.78);
+    --color-gold-500: oklch(0.806 0.136 84.73);
+    --color-gold-600: oklch(0.674 0.114 84.32);
+    --color-gold-700: oklch(0.537 0.091 84.73);
+    --color-gold-800: oklch(0.406 0.068 85.06);
+    --color-gold-900: oklch(0.268 0.045 84.67);
+    --color-gold-950: oklch(0.207 0.035 83.86);
+
+    --color-slate-50: oklch(0.949 0.006 264.61);
+    --color-slate-100: oklch(0.896 0.012 259.84);
+    --color-slate-200: oklch(0.801 0.023 256.75);
+    --color-slate-300: oklch(0.698 0.035 256.79);
+    --color-slate-400: oklch(0.603 0.031 258.37);
+    --color-slate-500: oklch(0.5 0.026 256.79);
+    --color-slate-600: oklch(0.431 0.022 253.51);
+    --color-slate-700: oklch(0.353 0.018 254.76);
+    --color-slate-800: oklch(0.283 0.015 256.79);
+    --color-slate-900: oklch(0.207 0.01 248.31);
+    --color-slate-950: oklch(0.163 0.009 264.29);
+
+    --color-black-50: #f6f6f6;
+    --color-black-100: #e7e7e7;
+    --color-black-200: #d1d1d1;
+    --color-black-300: #b0b0b0;
+    --color-black-400: #888888;
+    --color-black-500: #6d6d6d;
+    --color-black-600: #5d5d5d;
+    --color-black-700: #4f4f4f;
+    --color-black-800: #454545;
+    --color-black-900: #3d3d3d;
+    --color-black-950: #121212;
+
+    --color-white-50: #ffffff;
+    --color-white-100: #efefef;
+    --color-white-200: #dcdcdc;
+    --color-white-300: #bdbdbd;
+    --color-white-400: #989898;
+    --color-white-500: #7c7c7c;
+    --color-white-600: #656565;
+    --color-white-700: #525252;
+    --color-white-800: #464646;
+    --color-white-900: #3d3d3d;
+    --color-white-950: #292929;
+}
+
+@utility shadow-smooth {
+    box-shadow: var(--shadow-elevation-medium);
+}
+
+@utility fancy-bg {
+    background-image:
+        radial-gradient(
+            circle at 17% 77%,
+            oklch(from var(--color-gold-950) l c h / 0.04) 0%,
+            oklch(from var(--color-gold-950) l c h / 0.04) 50%,
+            oklch(from var(--color-gold-200) l c h / 0.04) 50%,
+            oklch(from var(--color-gold-200) l c h / 0.04) 100%
+        ),
+        radial-gradient(
+            circle at 26% 17%,
+            oklch(from var(--color-gold-800) l c h / 0.04) 0%,
+            oklch(from var(--color-gold-800) l c h / 0.04) 50%,
+            oklch(from var(--color-gold-50) l c h / 0.04) 50%,
+            oklch(from var(--color-gold-50) l c h / 0.04) 100%
+        ),
+        radial-gradient(
+            circle at 44% 60%,
+            oklch(from var(--color-gold-400) l c h / 0.04) 0%,
+            oklch(from var(--color-gold-400) l c h / 0.04) 50%,
+            oklch(from var(--color-gold-300) l c h / 0.04) 50%,
+            oklch(from var(--color-gold-300) l c h / 0.04) 100%
+        ),
+        linear-gradient(
+            19deg,
+            oklch(from var(--color-gold-600) l c h / 0.5),
+            oklch(from var(--color-gold-900) l c h / 0.8)
+        );
+}

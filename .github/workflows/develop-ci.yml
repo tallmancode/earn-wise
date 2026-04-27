@@ -1,0 +1,72 @@
+name: Develop CI
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  test:
+    name: Tests (PHP 8.4)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install Node dependencies
+        run: npm i
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Copy environment file
+        run: cp .env.example .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Run tests
+        run: ./vendor/bin/pest
+
+  docker-compose-check:
+    name: Docker Compose Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Generate APP_KEY
+        run: echo "APP_KEY=base64:$(openssl rand -base64 32)" >> $GITHUB_ENV
+
+      - name: Validate docker-compose config
+        run: docker compose config
+
+      - name: Build images
+        run: docker compose build
+
+      - name: Start services and wait for healthy
+        run: docker compose up -d --wait
+
+      - name: Verify all services are running
+        run: docker compose ps
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v

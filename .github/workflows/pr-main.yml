@@ -1,0 +1,212 @@
+name: PR to Main
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: pr-main-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── 1. PHP code style (read-only, no auto-fix) ───────────────────────────
+  lint-php:
+    name: Lint / PHP (Pint)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+
+      - name: Check PHP code style
+        run: composer lint:check
+
+  # ── 2. Frontend quality checks ───────────────────────────────────────────
+  lint-frontend:
+    name: Lint / Frontend (ESLint + Prettier + Types)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+
+      - name: Generate Wayfinder actions
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          php artisan wayfinder:generate --no-interaction
+
+      - name: Check code formatting
+        run: npm run format:check
+
+      - name: Lint frontend code
+        run: npm run lint:check
+
+      - name: Check TypeScript types
+        run: npm run types:check
+
+  # ── 3. Tests (matrix across supported PHP versions) ─────────────────────
+  tests:
+    name: Tests / PHP ${{ matrix.php-version }}
+    runs-on: ubuntu-latest
+    needs: [lint-php, lint-frontend]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.3', '8.4']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: composer:v2
+          coverage: xdebug
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Copy environment file
+        run: cp .env.example .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Run database migrations
+        run: php artisan migrate --force
+
+      - name: Run tests
+        run: ./vendor/bin/pest --parallel
+
+  # ── 4. Production build ──────────────────────────────────────────────────
+  build-production:
+    name: Build / Production Assets
+    runs-on: ubuntu-latest
+    needs: [lint-frontend]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Copy environment file
+        run: cp .env.example .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Build production assets
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build
+          path: public/build
+          retention-days: 3
+
+  # ── 5. Docker Compose sanity check ──────────────────────────────────────
+  docker-compose-check:
+    name: Docker Compose Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate APP_KEY
+        run: echo "APP_KEY=base64:$(openssl rand -base64 32)" >> $GITHUB_ENV
+
+      - name: Validate docker-compose config
+        run: docker compose config
+
+      - name: Build Docker images
+        run: docker compose build
+
+      - name: Start services and wait for healthy
+        run: docker compose up -d --wait
+
+      - name: Verify all services are running
+        run: docker compose ps
+
+      - name: Teardown
+        if: always()
+        run: docker compose down -v
+
+  # ── 6. Final gate — all jobs must pass ──────────────────────────────────
+  ci-passed:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [lint-php, lint-frontend, tests, build-production, docker-compose-check]
+    if: always()
+
+    steps:
+      - name: Verify all jobs succeeded
+        run: |
+          results="${{ join(needs.*.result, ' ') }}"
+          echo "Job results: $results"
+          for result in $results; do
+            if [ "$result" != "success" ]; then
+              echo "One or more required checks failed."
+              exit 1
+            fi
+          done
+          echo "All checks passed — PR is ready to merge."
