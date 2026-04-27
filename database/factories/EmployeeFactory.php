@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,7 @@ class EmployeeFactory extends Factory
         return [
             'company_id' => Company::factory(),
             'branch_id' => Branch::factory(),
-            'user_id' => null,
+            'user_id' => User::factory(),
             'name' => fake()->name(),
         ];
     }
