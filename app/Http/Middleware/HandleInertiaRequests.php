@@ -37,14 +37,15 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
-        $selectedCompanyId = session('selected_company_id');
+        $companies = $user ? $user->companies()->get(['id', 'name']) : collect();
+        $selectedCompanyId = session('selected_company_id') ?? $companies->first()?->id;
 
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
                 'user' => $user,
-                'companies' => $user ? $user->companies()->get(['id', 'name']) : [],
+                'companies' => $companies,
                 'selectedCompanyId' => $selectedCompanyId,
                 'branches' => $user && $selectedCompanyId
                     ? Branch::where('company_id', $selectedCompanyId)->get(['id', 'name'])
