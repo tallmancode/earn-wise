@@ -10,14 +10,14 @@ import type {
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
 import { computed, h, ref, resolveComponent, watch } from 'vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { useNoteStore } from '@/stores/noteStore';
 import {
     destroy as destroyAction,
     index as indexAction,
     store as storeAction,
     update as updateAction,
 } from '@/actions/App/Http/Controllers/CommissionNoteController';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { useNoteStore } from '@/stores/noteStore';
 
 defineOptions({ layout: AppLayout });
 
