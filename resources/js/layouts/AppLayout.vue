@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref, shallowRef } from 'vue';
-import AppLogo from '@/components/AppLogo.vue';
+import AppLogoLight from "@/components/AppLogoLight.vue";
 import CompanySwitcher from '@/components/CompanySwitcher.vue';
 import NotificationBell from '@/components/NotificationBell.vue';
 import type { Auth, Branch, User } from '@/types/auth';
@@ -75,7 +75,7 @@ const panelUi = shallowRef({});
             >
                 <template #header>
                     <Link href="/dashboard" class="flex items-center px-1">
-                        <AppLogo class="h-auto w-full" />
+                        <AppLogoLight class="h-auto w-full" />
                     </Link>
                 </template>
                 <USeparator :ui="{ border: 'border-white-100/80' }" />
