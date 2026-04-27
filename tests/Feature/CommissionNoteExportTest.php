@@ -66,6 +66,41 @@ it('denies export to users without view permission', function () {
         ->assertForbidden();
 });
 
+it('ignores an invalid month format and returns all notes', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo('view commission notes');
+
+    $company = Company::factory()->create();
+    $branch = Branch::factory()->for($company)->create();
+    $employee = Employee::factory()->for($company)->for($branch)->create();
+
+    CommissionNote::factory()->create([
+        'company_id' => $company->id,
+        'branch_id' => $branch->id,
+        'employee_id' => $employee->id,
+        'created_by' => $user->id,
+        'amount' => 1111,
+        'payment_date' => '2026-01-10',
+    ]);
+
+    CommissionNote::factory()->create([
+        'company_id' => $company->id,
+        'branch_id' => $branch->id,
+        'employee_id' => $employee->id,
+        'created_by' => $user->id,
+        'amount' => 2222,
+        'payment_date' => '2026-06-15',
+    ]);
+
+    $csv = $this->actingAs($user)
+        ->get(route('notes.export', [$company, $branch]).'?month=not-a-month')
+        ->streamedContent();
+
+    expect($csv)
+        ->toContain('1111.00')
+        ->toContain('2222.00');
+});
+
 it('filters export by month when month query param is provided', function () {
     $user = User::factory()->create();
     $user->givePermissionTo('view commission notes');

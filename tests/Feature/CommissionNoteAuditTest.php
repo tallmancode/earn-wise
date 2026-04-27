@@ -78,6 +78,32 @@ it('records an updated audit entry with old and new values when a note is edited
         ->and($audit->new_values['payment_date'])->toBe('2026-04-15');
 });
 
+it('records a restored audit entry when a note is restored', function () {
+    $user = User::factory()->create();
+    $user->givePermissionTo(['view commission notes', 'manage commission notes']);
+
+    $note = CommissionNote::factory()->create([
+        'created_by' => $user->id,
+        'amount' => 7500,
+    ]);
+    $note->delete();
+
+    $this->actingAs($user);
+
+    $service = new CommissionNoteService;
+    $service->restore($note);
+
+    $this->assertNotSoftDeleted('commission_notes', ['id' => $note->id]);
+
+    $audit = CommissionNoteAudit::where('commission_note_id', $note->id)
+        ->where('event', 'restored')
+        ->first();
+
+    expect($audit)->not->toBeNull()
+        ->and($audit->old_values)->toBeNull()
+        ->and($audit->new_values['amount'])->toBe('7500.00');
+});
+
 it('records a deleted audit entry when a note is deleted', function () {
     $user = User::factory()->create();
     $user->givePermissionTo(['view commission notes', 'manage commission notes']);
