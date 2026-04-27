@@ -7,7 +7,7 @@ import type {
     Employee,
     Paginated,
 } from '@/types/auth';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
 import { computed, h, ref, resolveComponent, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -30,12 +30,7 @@ const props = defineProps<{
     filters: { search: string };
 }>();
 
-const page = usePage();
 const noteStore = useNoteStore();
-
-const currentUserId = computed(
-    () => (page.props.auth as any)?.user?.id as number,
-);
 
 const search = ref(props.filters.search ?? '');
 
@@ -248,7 +243,7 @@ const columns = [
     },
     {
         id: 'actions',
-        header: '',
+        header: 'Actions',
     },
 ];
 </script>
@@ -316,7 +311,7 @@ const columns = [
                 :columns="columns"
                 empty="No commission notes found."
             >
-                <template #actions-data="{ row }">
+                <template #actions-cell="{ row }">
                     <div class="flex items-center gap-2">
                         <UButton
                             label="History"
@@ -327,10 +322,7 @@ const columns = [
                             @click="openHistory(row.original)"
                         />
                         <UButton
-                            v-if="
-                                canManage ||
-                                row.original.created_by === currentUserId
-                            "
+                            v-if="canManage"
                             label="Edit"
                             color="neutral"
                             variant="ghost"
@@ -339,10 +331,7 @@ const columns = [
                             @click="noteStore.selectNote(row.original)"
                         />
                         <UButton
-                            v-if="
-                                canManage ||
-                                row.original.created_by === currentUserId
-                            "
+                            v-if="canManage"
                             label="Delete"
                             color="error"
                             variant="ghost"

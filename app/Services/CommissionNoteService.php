@@ -45,7 +45,7 @@ class CommissionNoteService
     public function update(CommissionNote $note, array $validated): CommissionNote
     {
         throw_unless(
-            Auth::user()?->can('manage commission notes') || $note->created_by === Auth::id(),
+            Auth::user()?->can('manage commission notes'),
             AuthorizationException::class,
             'You are not allowed to edit this note.',
         );
@@ -68,7 +68,7 @@ class CommissionNoteService
     public function delete(CommissionNote $note): void
     {
         throw_unless(
-            Auth::user()?->can('manage commission notes') || $note->created_by === Auth::id(),
+            Auth::user()?->can('manage commission notes'),
             AuthorizationException::class,
             'You are not allowed to delete this note.',
         );
