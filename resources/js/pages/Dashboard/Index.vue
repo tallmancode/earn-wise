@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import type { BranchStat, EmployeeStat, RecentNote, User } from '@/types/auth';
 import { Head, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BranchStat, EmployeeStat, RecentNote, User } from '@/types/auth';
 
 defineOptions({ layout: AppLayout });
 

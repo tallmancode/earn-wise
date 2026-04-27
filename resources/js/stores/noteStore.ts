@@ -1,6 +1,6 @@
+import type { CommissionNote } from '@/types/auth';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type { CommissionNote } from '@/types/auth';
 
 export const useNoteStore = defineStore('notes', () => {
     const selectedNote = ref<CommissionNote | null>(null);

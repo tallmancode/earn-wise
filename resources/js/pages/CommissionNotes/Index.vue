@@ -1,4 +1,12 @@
 <script setup lang="ts">
+import type {
+    Branch,
+    CommissionNote,
+    CommissionNoteAudit,
+    Company,
+    Employee,
+    Paginated,
+} from '@/types/auth';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
 import { computed, h, ref, resolveComponent, watch } from 'vue';
@@ -10,14 +18,6 @@ import {
 } from '@/actions/App/Http/Controllers/CommissionNoteController';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useNoteStore } from '@/stores/noteStore';
-import type {
-    Branch,
-    CommissionNote,
-    CommissionNoteAudit,
-    Company,
-    Employee,
-    Paginated,
-} from '@/types/auth';
 
 defineOptions({ layout: AppLayout });
 

@@ -1,7 +1,7 @@
+import type { Company } from '@/types/auth';
 import { usePage, router } from '@inertiajs/vue3';
 import { defineStore } from 'pinia';
 import { computed } from 'vue';
-import type { Company } from '@/types/auth';
 
 export const useCompanyStore = defineStore('company', () => {
     const page = usePage();

@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import type { Auth, Branch, User } from '@/types/auth';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref, shallowRef } from 'vue';
 import AppLogoLight from '@/components/AppLogoLight.vue';
 import CompanySwitcher from '@/components/CompanySwitcher.vue';
 import NotificationBell from '@/components/NotificationBell.vue';
-import type { Auth, Branch, User } from '@/types/auth';
 
 const page = usePage();
 const auth = computed(() => page.props.auth as Auth | undefined);
