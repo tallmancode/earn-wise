@@ -99,20 +99,20 @@ it('forbids updating a note the view-only user did not author', function () {
     ])->assertForbidden();
 });
 
-it('forbids a view-only user from updating a note they authored', function () {
-    $viewer = User::factory()->create();
-    $viewer->givePermissionTo('view commission notes');
+it('allows the author to update their own note', function () {
+    $author = User::factory()->create();
+    $author->givePermissionTo('view commission notes');
 
-    $note = CommissionNote::factory()->create(['created_by' => $viewer->id]);
+    $note = CommissionNote::factory()->create(['created_by' => $author->id]);
 
-    $this->actingAs($viewer)->patch(route('notes.update', $note), [
+    $this->actingAs($author)->patch(route('notes.update', $note), [
         'amount' => 12000,
         'payment_date' => now()->toDateString(),
-    ])->assertForbidden();
+    ])->assertRedirect();
 
     $this->assertDatabaseHas('commission_notes', [
         'id' => $note->id,
-        'amount' => $note->amount,
+        'amount' => 12000,
     ]);
 });
 
@@ -129,16 +129,16 @@ it('forbids deleting a note the view-only user did not author', function () {
         ->assertForbidden();
 });
 
-it('forbids a view-only user from deleting a note they authored', function () {
+it('allows the author to delete their own note', function () {
     $author = User::factory()->create();
     $author->givePermissionTo('view commission notes');
 
     $note = CommissionNote::factory()->create(['created_by' => $author->id]);
 
     $this->actingAs($author)->delete(route('notes.destroy', $note))
-        ->assertForbidden();
+        ->assertRedirect();
 
-    $this->assertDatabaseHas('commission_notes', ['id' => $note->id]);
+    $this->assertSoftDeleted('commission_notes', ['id' => $note->id]);
 });
 
 it('does not return notes from other branches', function () {
