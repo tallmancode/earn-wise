@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import type { Branch } from '@/types/auth';
 import { Head, useForm } from '@inertiajs/vue3';
 import { computed, h, ref, resolveComponent } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { Branch } from '@/types/auth';
 
 defineOptions({ layout: AppLayout });
 

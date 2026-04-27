@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
 import type { AppNotification } from '@/types/auth';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 const unreadCount = ref(0);
 const notifications = ref<AppNotification[]>([]);
