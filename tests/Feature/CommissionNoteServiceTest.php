@@ -14,7 +14,7 @@ beforeEach(function () {
     Permission::create(['name' => 'manage commission notes']);
 });
 
-it('allows the original author to edit their own note without manage permission', function () {
+it('throws an authorization exception when a view-only author tries to update their note', function () {
     $author = User::factory()->create();
     $author->givePermissionTo('view commission notes');
 
@@ -22,13 +22,10 @@ it('allows the original author to edit their own note without manage permission'
 
     $this->actingAs($author);
 
-    $service = new CommissionNoteService;
-    $updated = $service->update($note, [
+    expect(fn () => (new CommissionNoteService)->update($note, [
         'amount' => 15000,
         'payment_date' => now()->toDateString(),
-    ]);
-
-    expect($updated->amount)->toBe('15000.00');
+    ]))->toThrow(AuthorizationException::class);
 });
 
 it('allows a manager to edit someone elses note', function () {
